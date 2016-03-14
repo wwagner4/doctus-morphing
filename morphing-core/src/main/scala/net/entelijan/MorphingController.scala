@@ -15,10 +15,11 @@ case class Trans(startTime: Long, from: DoctusPoint, to: DoctusPoint, duration: 
 case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
 
   val random = new java.util.Random
+  
+  override val frameRate = Some(10)
 
   val pixImages = List(PixImageFactory.no0160, PixImageFactory.no0260, PixImageFactory.no0360,
     PixImageFactory.no0460, PixImageFactory.no0560, PixImageFactory.no0660, PixImageFactory.no0760, PixImageFactory.no0860)
-
 
   var currentImg = 0
   var transitions = List.empty[Trans]
@@ -36,7 +37,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
       img1.zip(img2) map {
         case (a1, a2) =>
           val roff = randomOffset
-          val duration = 3000 + random.nextInt(4000)
+          val duration = 3000 + random.nextInt(10000)
           Trans(startTime, a1, a2 + roff, duration)
       }
     }
@@ -53,11 +54,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
   // Between 0.0 and 1.0
   def ran(): Double = random.nextDouble()
 
-  def pointImg(pi: PixImage): List[DoctusPoint] = createPoints(5000, pi)
-
-  def createPoints(cnt: Int, pi: PixImage): List[DoctusPoint] = {
-    createPoints1(cnt, List.empty[DoctusPoint], pi)
-  }
+  def pointImg(pi: PixImage): List[DoctusPoint] = createPoints1(5000, List.empty[DoctusPoint], pi)
 
   @tailrec
   private def createPoints1(cnt: Int, points: List[DoctusPoint], img: PixImage): List[DoctusPoint] = {
@@ -80,7 +77,6 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
     val index = i * img.height + j
     val bright = img.pixels(index)
     val ranBright = ran()
-    //println("%.2f %.2f" format (bright, ranBright))
     ranBright > bright
   }
 
@@ -89,7 +85,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
     val h = canvas.height
 
     def drawBackground(g: DoctusGraphics): Unit = {
-      g.fill(DoctusColorWhite, 200)
+      g.fill(DoctusColorWhite, 100)
       g.rect(DoctusPoint(0, 0), w, h)
     }
 
@@ -112,7 +108,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
         val y = trans.to.y
         DoctusPoint(adj(x, w), adj(y, h))
       }
-      g.line(dp.x, dp.y, dp.x, dp.y + 10)
+      g.rect(dp.x - 10, dp.y - 10, 20, 20)
     }
 
     def currentTime: Long = System.currentTimeMillis()
@@ -122,12 +118,14 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
       createNextTrans
     }
 
-    drawBackground(g)
-    //g.fill(DoctusColorOrange, 100)
-    g.stroke(DoctusColorBlack, 200)
-    g.strokeWeight(1)
-    transitions.foreach { trans => drawTrans(trans, time) }
-
+//    if (!transitions.isEmpty && !transitions.forall { _.terminated(time) }) {
+      drawBackground(g)
+      g.fill(DoctusColorBlack, 10)
+      g.noStroke()
+      //g.stroke(DoctusColorBlack, 150)
+      //g.strokeWeight(5)
+      transitions.foreach { trans => drawTrans(trans, time) }
+  //  }
   }
 
   def pointableDragged(pos: DoctusPoint): Unit = () // Nothing to do here
