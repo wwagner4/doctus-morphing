@@ -54,31 +54,31 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
   // Between 0.0 and 1.0
   def ran(): Double = random.nextDouble()
 
-  case class Scale(x: Double, y: Double)
+  case class Adjust(scalex: Double, scaley: Double, offx: Double, offy: Double)
 
   def pointImg(pi: PixImage): List[DoctusPoint] = {
     val scale = calcScale(canvas.width, canvas.height, pi.width, pi.height)
     createPoints1(5000, List.empty[DoctusPoint], pi, scale)
   }
 
-  def calcScale(canvW: Double, canvH: Double, imgW: Double, imgH: Double): Scale = {
+  def calcScale(canvW: Double, canvH: Double, imgW: Double, imgH: Double): Adjust = {
     val canvasR = canvW / canvH
     val imgR = imgW / imgH
-    if (canvasR > imgR) Scale(imgR, 1.0)
-    else Scale(1.0, imgR)
+    if (canvasR > imgR) Adjust(imgR, 1.0, math.abs(1 - imgR) * 0.5, 0)
+    else Adjust(1.0, imgR, 0, math.abs(1 - imgR) * 0.5)
   }
 
   @tailrec
-  private def createPoints1(cnt: Int, points: List[DoctusPoint], img: PixImage, scale: Scale): List[DoctusPoint] = {
+  private def createPoints1(cnt: Int, points: List[DoctusPoint], img: PixImage, adj: Adjust): List[DoctusPoint] = {
     if (cnt == 0) points
     else {
       val x = ran();
       val y = ran();
       if (isPoint(x, y, img)) {
-        val p = DoctusPoint(x * scale.x, y * scale.y)
-        createPoints1(cnt - 1, p :: points, img, scale)
+        val p = DoctusPoint(adj.offx + x * adj.scalex, adj.offy + y * adj.scaley)
+        createPoints1(cnt - 1, p :: points, img, adj)
       } else {
-        createPoints1(cnt, points, img, scale)
+        createPoints1(cnt, points, img, adj)
       }
     }
   }
