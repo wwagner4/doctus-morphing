@@ -6,7 +6,7 @@ import doctus.core.template._
 import doctus.core.color._
 import scala.annotation.tailrec
 
-case class Trans(startTime: Long, from: DoctusPoint, to: DoctusPoint, duration: Long) {
+case class Trans(startTime: Long, from: DoctusPoint, to: DoctusPoint, duration: Long, disp: Int) {
 
   def terminated(time: Long) = time - startTime > duration
 
@@ -38,7 +38,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
         case (a1, a2) =>
           val roff = randomOffset
           val duration = 1000 + random.nextInt(1000)
-          Trans(startTime, a1, a2 + roff, duration)
+          Trans(startTime, a1, a2 + roff, duration, random.nextInt(8))
       }
     }
 
@@ -100,6 +100,22 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
       g.fill(DoctusColorWhite, 100)
       g.rect(DoctusPoint(0, 0), w, h)
     }
+    
+    def createLine(center: DoctusPoint, disp: Int): (DoctusPoint, DoctusPoint) = {
+      val len = 5.0
+      val lenh = len / 2.0
+      disp match {
+        case 0 => (center + DoctusVector(len, 0), center + DoctusVector(-len, 0))
+        case 1 => (center + DoctusVector(0, lenh), center + DoctusVector(0, -lenh))
+        case 2 => (center + DoctusVector(len, len), center + DoctusVector(-len, -len))
+        case 3 => (center + DoctusVector(lenh, len), center + DoctusVector(-lenh, -len))
+        case 4 => (center + DoctusVector(0, len), center + DoctusVector(0, -len))
+        case 5 => (center + DoctusVector(-lenh, len), center + DoctusVector(lenh, -len))
+        case 6 => (center + DoctusVector(-len, len), center + DoctusVector(len, -len))
+        case 7 => (center + DoctusVector(-len, lenh), center + DoctusVector(len, -lenh))
+        case _ => throw new IllegalArgumentException("disp must be 0-7")
+      }
+    }
 
     def drawTrans(trans: Trans, time: Long): Unit = {
       def adj(v: Double, max: Double): Double = {
@@ -120,7 +136,9 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
         val y = trans.to.y
         DoctusPoint(adj(x, w), adj(y, h))
       }
-      g.rect(dp.x - 10, dp.y - 10, 20, 20)
+      val center = DoctusPoint(dp.x, dp.y)
+      val (from, to) = createLine(center, trans.disp)
+      g.line(from, to)
     }
 
     def currentTime: Long = System.currentTimeMillis()
@@ -130,14 +148,15 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
       createNextTrans
     }
 
-    //    if (!transitions.isEmpty && !transitions.forall { _.terminated(time) }) {
     drawBackground(g)
-    g.fill(DoctusColorBlack, 10)
-    g.noStroke()
-    //g.stroke(DoctusColorBlack, 150)
-    //g.strokeWeight(5)
+    
+    //g.fill(DoctusColorBlack, 10)
+    //g.noStroke()
+    
+    g.stroke(DoctusColorBlack, 150)
+    g.strokeWeight(1)
+
     transitions.foreach { trans => drawTrans(trans, time) }
-    //  }
   }
 
   def pointableDragged(pos: DoctusPoint): Unit = () // Nothing to do here
