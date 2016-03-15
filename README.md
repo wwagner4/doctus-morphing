@@ -1,1 +1,1 @@
-# doctus-morphing
+Another graphic doctus project. Does morphing between a number of images. 
