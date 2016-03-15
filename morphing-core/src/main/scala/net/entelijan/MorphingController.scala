@@ -15,8 +15,8 @@ case class Trans(startTime: Long, from: DoctusPoint, to: DoctusPoint, duration: 
 case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
 
   val random = new java.util.Random
-  
-  override val frameRate = Some(10)
+
+  override val frameRate = Some(20)
 
   val pixImages = List(PixImageFactory.no0160, PixImageFactory.no0260, PixImageFactory.no0360,
     PixImageFactory.no0460, PixImageFactory.no0560, PixImageFactory.no0660, PixImageFactory.no0760, PixImageFactory.no0860)
@@ -29,15 +29,15 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
 
     def createTransitions(img1: List[DoctusPoint], img2: List[DoctusPoint], startTime: Long): List[Trans] = {
       def randomOffset: DoctusVector = {
-        val xIntOff = random.nextInt(5) - 2
-        val yIntOff = random.nextInt(5) - 2
+        val xIntOff = random.nextInt(3) - 1
+        val yIntOff = random.nextInt(3) - 1
         DoctusVector(xIntOff, yIntOff)
       }
 
       img1.zip(img2) map {
         case (a1, a2) =>
           val roff = randomOffset
-          val duration = 3000 + random.nextInt(10000)
+          val duration = 1000 + random.nextInt(1000)
           Trans(startTime, a1, a2 + roff, duration)
       }
     }
@@ -54,19 +54,31 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
   // Between 0.0 and 1.0
   def ran(): Double = random.nextDouble()
 
-  def pointImg(pi: PixImage): List[DoctusPoint] = createPoints1(5000, List.empty[DoctusPoint], pi)
+  case class Scale(x: Double, y: Double)
+
+  def pointImg(pi: PixImage): List[DoctusPoint] = {
+    val scale = calcScale(canvas.width, canvas.height, pi.width, pi.height)
+    createPoints1(5000, List.empty[DoctusPoint], pi, scale)
+  }
+
+  def calcScale(canvW: Double, canvH: Double, imgW: Double, imgH: Double): Scale = {
+    val canvasR = canvW / canvH
+    val imgR = imgW / imgH
+    if (canvasR > imgR) Scale(imgR, 1.0)
+    else Scale(1.0, imgR)
+  }
 
   @tailrec
-  private def createPoints1(cnt: Int, points: List[DoctusPoint], img: PixImage): List[DoctusPoint] = {
+  private def createPoints1(cnt: Int, points: List[DoctusPoint], img: PixImage, scale: Scale): List[DoctusPoint] = {
     if (cnt == 0) points
     else {
       val x = ran();
       val y = ran();
       if (isPoint(x, y, img)) {
-        val p = DoctusPoint(x, y)
-        createPoints1(cnt - 1, p :: points, img)
+        val p = DoctusPoint(x * scale.x, y * scale.y)
+        createPoints1(cnt - 1, p :: points, img, scale)
       } else {
-        createPoints1(cnt, points, img)
+        createPoints1(cnt, points, img, scale)
       }
     }
   }
@@ -118,14 +130,14 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
       createNextTrans
     }
 
-//    if (!transitions.isEmpty && !transitions.forall { _.terminated(time) }) {
-      drawBackground(g)
-      g.fill(DoctusColorBlack, 10)
-      g.noStroke()
-      //g.stroke(DoctusColorBlack, 150)
-      //g.strokeWeight(5)
-      transitions.foreach { trans => drawTrans(trans, time) }
-  //  }
+    //    if (!transitions.isEmpty && !transitions.forall { _.terminated(time) }) {
+    drawBackground(g)
+    g.fill(DoctusColorBlack, 10)
+    g.noStroke()
+    //g.stroke(DoctusColorBlack, 150)
+    //g.strokeWeight(5)
+    transitions.foreach { trans => drawTrans(trans, time) }
+    //  }
   }
 
   def pointableDragged(pos: DoctusPoint): Unit = () // Nothing to do here
