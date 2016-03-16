@@ -20,7 +20,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
 
   
   def dispLinePrep(angle: Int): DoctusVector = {
-    val len = 15.0
+    val len = 30.0
     val lenh = len / 2.0
     DoctusVector(0, lenh).rot(angle * math.Pi / 180)
   }
@@ -35,7 +35,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
   override val frameRate = Some(20)
 
   val pixImages = List(PixImageFactory.no0160, PixImageFactory.no0260, PixImageFactory.no0360,
-    PixImageFactory.no0460, PixImageFactory.no0560, PixImageFactory.no0660, PixImageFactory.no0760, PixImageFactory.no0860)
+    PixImageFactory.no0460, PixImageFactory.no0560, PixImageFactory.no0760, PixImageFactory.no0860)
 
   var currentImg = 0
   var models = List.empty[Model]
@@ -81,7 +81,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
 
   def pointImg(pi: PixImage): List[DoctusPoint] = {
     val scale = calcScale(canvas.width, canvas.height, pi.width, pi.height)
-    createPoints(15000, List.empty[DoctusPoint], pi, scale)
+    createPoints(5000, List.empty[DoctusPoint], pi, scale)
   }
 
   def calcScale(canvW: Double, canvH: Double, imgW: Double, imgH: Double): Adjust = {
@@ -120,7 +120,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
     val h = canvas.height
 
     def drawBackground(g: DoctusGraphics): Unit = {
-      g.fill(DoctusColorWhite, 100)
+      g.fill(DoctusColorWhite, 255)
       g.rect(DoctusPoint(0, 0), w, h)
     }
 
@@ -131,13 +131,6 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
         } else {
           (v % 1.0) * max
         }
-      }
-
-      def createLine(center: DoctusPoint, disp: Int): (DoctusPoint, DoctusPoint) = {
-        val len = 15.0
-        val lenh = len / 2.0
-        val v0 = DoctusVector(0, lenh).rot(disp * math.Pi / 180)
-        (center + v0, center - v0)
       }
 
       val trans = model.trans
@@ -161,7 +154,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
 
     //g.fill(DoctusColorBlack, 10)
     //g.noStroke()
-    g.stroke(DoctusColorBlack, 150)
+    g.stroke(DoctusColorBlack, 255)
     g.strokeWeight(1)
 
     models.foreach { model => drawModel(model, System.currentTimeMillis()) }
