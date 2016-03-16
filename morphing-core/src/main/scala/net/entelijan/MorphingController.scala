@@ -12,13 +12,25 @@ case class Trans(startTime: Long, from: DoctusPoint, to: DoctusPoint, duration: 
 
 }
 
-case class Model(trans: Trans, disp: Int)
+case class Model(trans: Trans, disp: (DoctusGraphics, DoctusPoint) => Unit)
 
 case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
 
   val random = new java.util.Random
 
-  val disps = Stream.continually(random.nextInt(360))
+  
+  def dispLinePrep(angle: Int): DoctusVector = {
+    val len = 15.0
+    val lenh = len / 2.0
+    DoctusVector(0, lenh).rot(angle * math.Pi / 180)
+  }
+  
+  
+  def dispLine(angleVector: DoctusVector)(g: DoctusGraphics, center: DoctusPoint): Unit = {
+    g.line(center + angleVector, center - angleVector)
+  }
+
+  val disps = Stream.continually(random.nextInt(360)).map { angle => dispLinePrep(angle) }
 
   override val frameRate = Some(20)
 
@@ -48,7 +60,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
     }
 
     def createModels(transisions: List[Trans]): List[Model] = {
-      transisions.zip(disps).map { case (trans, disp) => Model(trans, disp) }
+      transisions.zip(disps).map { case (trans, disp) => Model(trans, dispLine(disp)) }
     }
 
     val i1 = pixImages(currentImg)
@@ -112,13 +124,6 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
       g.rect(DoctusPoint(0, 0), w, h)
     }
 
-    def createLine(center: DoctusPoint, disp: Int): (DoctusPoint, DoctusPoint) = {
-      val len = 15.0
-      val lenh = len / 2.0
-      val v0 = DoctusVector(0, lenh).rot(disp * math.Pi / 180)
-      (center + v0, center - v0)
-    }
-
     def drawModel(model: Model, time: Long): Unit = {
       def adj(v: Double, max: Double): Double = {
         if (v < 0) {
@@ -126,6 +131,13 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
         } else {
           (v % 1.0) * max
         }
+      }
+
+      def createLine(center: DoctusPoint, disp: Int): (DoctusPoint, DoctusPoint) = {
+        val len = 15.0
+        val lenh = len / 2.0
+        val v0 = DoctusVector(0, lenh).rot(disp * math.Pi / 180)
+        (center + v0, center - v0)
       }
 
       val trans = model.trans
@@ -140,8 +152,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
         DoctusPoint(adj(x, w), adj(y, h))
       }
       val center = DoctusPoint(dp.x, dp.y)
-      val (from, to) = createLine(center, model.disp)
-      g.line(from, to)
+      model.disp(g, center)
     }
 
     if (models.isEmpty) createNextModels
