@@ -5,6 +5,8 @@ import doctus.core.util._
 import doctus.core.template._
 import doctus.core.color._
 import scala.annotation.tailrec
+import easing.OutQuad
+import easing.InOutQuad
 
 case class Trans(startTime: Long, from: DoctusPoint, to: DoctusPoint, duration: Long) {
 
@@ -37,6 +39,8 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
   val pixImages = List(PixImageFactory.no0160, PixImageFactory.no0260, PixImageFactory.no0360,
     PixImageFactory.no0460, PixImageFactory.no0560, PixImageFactory.no0760, PixImageFactory.no0860)
 
+  val pointImages = pixImages.map { pix => pointImg(pix) }  
+    
   var currentImg = 0
   var models = List.empty[Model]
 
@@ -63,10 +67,8 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
       transisions.zip(disps).map { case (trans, disp) => Model(trans, dispLine(disp)) }
     }
 
-    val i1 = pixImages(currentImg)
-    val i2 = pixImages((currentImg + 1) % pixImages.size)
-    val p1 = pointImg(i1)
-    val p2 = pointImg(i2)
+    val p1 = pointImages(currentImg)
+    val p2 = pointImages((currentImg + 1) % pointImages.size)
     val transitions = createTransitions(p1, p2, time)
 
     models = createModels(transitions)
@@ -136,8 +138,8 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
       val trans = model.trans
       val t = (time - trans.startTime).toDouble
       val dp = if (t < trans.duration) {
-        val x = trans.from.x + (t / trans.duration) * (trans.to.x - trans.from.x)
-        val y = trans.from.y + (t / trans.duration) * (trans.to.y - trans.from.y)
+        val x = InOutQuad.calc(t, trans.from.x, trans.to.x, trans.duration)
+        val y = InOutQuad.calc(t, trans.from.y, trans.to.y, trans.duration)
         DoctusPoint(adj(x, w), adj(y, h))
       } else {
         val x = model.trans.to.x
