@@ -115,7 +115,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
       }
     }
 
-    val nextImage = random.nextInt(pointImages.size)
+    val nextImage = MorphingUtil.nextIndex(currentImg, pointImages.size, random)
     
     val p1 = pointImages(currentImg).map { point => scale(point) }
     val p2 = pointImages(nextImage).map { point => scale(point) }
