@@ -57,7 +57,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
       img1.zip(img2) map {
         case (a1, a2) =>
           val roff = randomOffset
-          val duration = 3000
+          val duration = 5000 + random.nextInt(2000)
           Trans(startTime, a1, a2 + roff, duration)
       }
     }
