@@ -91,7 +91,10 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
       val x = ran();
       val y = ran();
       if (isPoint(x, y, img)) {
-        val p = DoctusPoint(x, y)
+        val  r = img.width.toDouble / img.height
+        val p = 
+          if (r < 1.0) DoctusPoint((1 - r) / 2 + x * r, y)
+          else DoctusPoint(x, (r - 1) / 2 + y / r)
         createPoints(cnt - 1, p :: points, img)
       } else {
         createPoints(cnt, points, img)
@@ -143,7 +146,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
     //g.fill(DoctusColorBlack, 10)
     //g.noStroke()
     g.stroke(DoctusColorBlack, 255)
-    g.strokeWeight(1)
+    g.strokeWeight(0.1)
 
     models.foreach { model => drawModel(model, System.currentTimeMillis()) }
   }
