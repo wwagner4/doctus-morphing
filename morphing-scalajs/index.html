@@ -18,12 +18,11 @@ p {
 	</head>
 	<body>
 		<canvas id="canvas" style="background-color: #EEEEEE; ">HTML5 canvas not supported in your browser :-(</canvas>
-		<p>Morphing using <a href="http://entelijan.net/art/doctus">doctus</a></p>
 		<script  type="text/javascript" >
 	            function resize() {
 					var canv = document.getElementById("canvas") 
 	                canv.width = window.innerWidth;
-	                canv.height = window.innerHeight - 30;
+	                canv.height = window.innerHeight;
 	            }
 	            resize();
 	            window.onresize = function() {resize();};	
