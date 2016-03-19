@@ -119,7 +119,8 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
     }
 
     def drawModel(model: Model, time: Long): Unit = {
-      def adj(v: Double, max: Double): Double = {
+      
+      def adjust(v: Double, max: Double): Double = {
         if (v < 0) {
           (1.0 - math.abs(v % 1.0)) * max
         } else {
@@ -132,11 +133,11 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
       val dp = if (t < trans.duration) {
         val x = InOutQuad.calc(t, trans.from.x, trans.to.x, trans.duration)
         val y = InOutQuad.calc(t, trans.from.y, trans.to.y, trans.duration)
-        DoctusPoint(adj(x, w), adj(y, h))
+        DoctusPoint(adjust(x, w), adjust(y, h))
       } else {
         val x = model.trans.to.x
         val y = model.trans.to.y
-        DoctusPoint(adj(x, w), adj(y, h))
+        DoctusPoint(adjust(x, w), adjust(y, h))
       }
       val center = DoctusPoint(dp.x, dp.y)
       model.disp(g, center)
