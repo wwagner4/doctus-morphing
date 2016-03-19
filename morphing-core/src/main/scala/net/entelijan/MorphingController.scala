@@ -48,8 +48,9 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
     def createTransitions(img1: List[DoctusPoint], img2: List[DoctusPoint], startTime: Long): List[Trans] = {
 
       def randomOffset: DoctusVector = {
-        val xIntOff = random.nextInt(3) - 1
-        val yIntOff = random.nextInt(3) - 1
+        val n = 1
+        val xIntOff = random.nextInt(2 * n + 1) - n
+        val yIntOff = random.nextInt(2 * n + 1) - n
         DoctusVector(xIntOff, yIntOff)
       }
 
