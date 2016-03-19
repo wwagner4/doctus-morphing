@@ -7,38 +7,38 @@ import java.io.File
 
 object Images extends App {
 
-  for(file <- new File("src/test/resources").listFiles()) {
-    val img = createImg(file)
-    println(formatPixImage(img, extractName(file.getName)))
+  for (file <- new File("src/test/resources").listFiles()) {
+    if (!file.getName.startsWith(".")) {
+      val img = createImg(file)
+      println(formatPixImage(img, extractName(file.getName)))
+    }
   }
-  
+
   def extractName(fileName: String): String = {
     val len = fileName.length()
     fileName.substring(0, len - 4)
   }
-  
+
   def formatGroups(groups: Seq[Seq[Double]]): String = groups match {
-    case Nil => ""
-    case grp :: Nil => grp.mkString(", ") 
-    case grp :: rest => grp.mkString("", ", ", ",") + "\n    " + formatGroups(rest) 
+    case Nil         => ""
+    case grp :: Nil  => grp.mkString(", ")
+    case grp :: rest => grp.mkString("", ", ", ",") + "\n    " + formatGroups(rest)
   }
-  
+
   def formatPixImage(img: PixImage, name: String): String = {
     val w = img.width
     val h = img.height
-    
-    
+
     val pixels = formatGroups(img.pixels.grouped(30).toList)
-    
+
     s"""
   def $name: PixImage = PixImage($w, $h, Seq(
     $pixels)
   )
       """
-    
+
   }
-  
-  
+
   def createImg(img: File): PixImage = {
     val bi: BufferedImage = ImageIO.read(img)
     val pixels = for (x <- 0 until bi.getWidth; y <- 0 until bi.getHeight) yield {

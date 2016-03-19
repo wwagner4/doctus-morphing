@@ -35,7 +35,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
   override val frameRate = Some(20)
 
   val pixImages = List(PixImageFactory.no0160, PixImageFactory.no0260, PixImageFactory.no0360,
-    PixImageFactory.no0460, PixImageFactory.no0560, PixImageFactory.no0760, PixImageFactory.no0860)
+    PixImageFactory.no0460, PixImageFactory.no0560, PixImageFactory.no0660, PixImageFactory.no0760, PixImageFactory.no0860)
 
   val pointImages = pixImages.map { pix => createPointImg(pix) }
 
