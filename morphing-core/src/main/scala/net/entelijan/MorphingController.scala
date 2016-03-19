@@ -94,16 +94,16 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
   }
 
   @tailrec
-  private def createPoints(cnt: Int, points: List[DoctusPoint], img: PixImage, adj: Scale): List[DoctusPoint] = {
+  private def createPoints(cnt: Int, points: List[DoctusPoint], img: PixImage, scale: Scale): List[DoctusPoint] = {
     if (cnt == 0) points
     else {
       val x = ran();
       val y = ran();
       if (isPoint(x, y, img)) {
-        val p = DoctusPoint(adj.offx + x * adj.scalex, adj.offy + y * adj.scaley)
-        createPoints(cnt - 1, p :: points, img, adj)
+        val p = DoctusPoint(scale.offx + x * scale.scalex, scale.offy + y * scale.scaley)
+        createPoints(cnt - 1, p :: points, img, scale)
       } else {
-        createPoints(cnt, points, img, adj)
+        createPoints(cnt, points, img, scale)
       }
     }
   }
