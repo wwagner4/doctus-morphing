@@ -21,7 +21,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
   val random = new java.util.Random
 
   def dispLinePrepare(angle: Int): DoctusVector = {
-    val len = 30.0
+    val len = 10.0
     val lenh = len / 2.0
     DoctusVector(0, lenh).rot(angle * math.Pi / 180)
   }
@@ -75,7 +75,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
       }
     }
 
-    createPoints(5000, List.empty[DoctusPoint], pi)
+    createPoints(10000, List.empty[DoctusPoint], pi)
   }
 
   def createNextModels: Unit = {
@@ -86,16 +86,19 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
     def createTransitions(img1: List[DoctusPoint], img2: List[DoctusPoint], startTime: Long): List[Trans] = {
 
       def randomOffset: DoctusVector = {
-        val n = 3
-        val xIntOff = random.nextInt(2 * n + 1) - n
-        val yIntOff = random.nextInt(2 * n + 1) - n
-        DoctusVector(xIntOff, yIntOff)
+        val n = 0
+        if (n == 0) DoctusVector(0, 0)
+        else {
+          val xIntOff = random.nextInt(2 * n + 1) - n
+          val yIntOff = random.nextInt(2 * n + 1) - n
+          DoctusVector(xIntOff, yIntOff)
+        }
       }
 
       img1.zip(img2) map {
         case (a1, a2) =>
           val roff = randomOffset
-          val duration = 5000 + random.nextInt(2000)
+          val duration = 10000
           Trans(startTime, a1, a2 + roff, duration)
       }
     }
