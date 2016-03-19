@@ -26,7 +26,7 @@ object MorphingSwing extends App {
   top.setVisible(true)
 
   // Common to all platforms
-  val templ = MorphingDoctusTemplate(canvas)
+  val templ = MorphingDoctusTemplate(canvas, sched)
   DoctusTemplateController(templ, sched, canvas)
 
 }

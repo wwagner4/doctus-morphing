@@ -18,7 +18,7 @@ object MorphingScalaJs {
     val sched = DoctusSchedulerScalajs
 
     // Common to all platforms
-    val templ = net.entelijan.MorphingDoctusTemplate(canvas)
+    val templ = net.entelijan.MorphingDoctusTemplate(canvas, sched)
     DoctusTemplateController(templ, sched, canvas)
 
 

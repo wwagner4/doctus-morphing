@@ -16,9 +16,12 @@ case class Trans(startTime: Long, from: DoctusPoint, to: DoctusPoint, duration: 
 
 case class Model(trans: Trans, disp: (DoctusGraphics, DoctusPoint) => Unit)
 
-case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
+case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) extends DoctusTemplate {
 
   val random = new java.util.Random
+  
+  
+  sched.start(nextModel, 20000)
 
   def dispLinePrepare(angle: Int): DoctusVector = {
     val len = 10.0
@@ -174,7 +177,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
     nextModel
   }
 
-  def nextModel: Unit = {
+  def nextModel(): Unit = {
     val time = System.currentTimeMillis()
     if (models.isEmpty || models.forall { _.trans.terminated(time) }) {
       createNextModels(System.currentTimeMillis())
