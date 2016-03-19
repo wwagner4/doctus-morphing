@@ -20,14 +20,12 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
 
   val random = new java.util.Random
 
-  
   def dispLinePrep(angle: Int): DoctusVector = {
     val len = 30.0
     val lenh = len / 2.0
     DoctusVector(0, lenh).rot(angle * math.Pi / 180)
   }
-  
-  
+
   def dispLine(angleVector: DoctusVector)(g: DoctusGraphics, center: DoctusPoint): Unit = {
     g.line(center + angleVector, center - angleVector)
   }
@@ -39,8 +37,8 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
   val pixImages = List(PixImageFactory.no0160, PixImageFactory.no0260, PixImageFactory.no0360,
     PixImageFactory.no0460, PixImageFactory.no0560, PixImageFactory.no0760, PixImageFactory.no0860)
 
-  val pointImages = pixImages.map { pix => pointImg(pix) }  
-    
+  val pointImages = pixImages.map { pix => pointImg(pix) }
+
   var currentImg = 0
   var models = List.empty[Model]
 
@@ -119,7 +117,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
     }
 
     def drawModel(model: Model, time: Long): Unit = {
-      
+
       def adjust(v: Double, max: Double): Double = {
         if (v < 0) {
           (1.0 - math.abs(v % 1.0)) * max
@@ -130,15 +128,9 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
 
       val trans = model.trans
       val t = (time - trans.startTime).toDouble
-      val dp = if (t < trans.duration) {
-        val x = InOutQuad.calc(t, trans.from.x, trans.to.x, trans.duration)
-        val y = InOutQuad.calc(t, trans.from.y, trans.to.y, trans.duration)
-        DoctusPoint(adjust(x, w), adjust(y, h))
-      } else {
-        val x = model.trans.to.x
-        val y = model.trans.to.y
-        DoctusPoint(adjust(x, w), adjust(y, h))
-      }
+      val x = InOutQuad.calc(t, trans.from.x, trans.to.x, trans.duration)
+      val y = InOutQuad.calc(t, trans.from.y, trans.to.y, trans.duration)
+      val dp = DoctusPoint(adjust(x, w), adjust(y, h))
       val center = DoctusPoint(dp.x, dp.y)
       model.disp(g, center)
     }
