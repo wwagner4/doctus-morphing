@@ -39,7 +39,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
 
   val pointImages = pixImages.map { pix => createPointImg(pix) }
 
-  var currentImg = 0
+  var currentImg = random.nextInt(pointImages.size)
   var models = List.empty[Model]
 
   // Between 0.0 and 1.0
@@ -78,8 +78,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
     createPoints(10000, List.empty[DoctusPoint], pi)
   }
 
-  def createNextModels: Unit = {
-    val time = System.currentTimeMillis()
+  def createNextModels(time: Long): Unit = {
     val w = canvas.width
     val h = canvas.height
 
@@ -116,12 +115,14 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
       }
     }
 
+    val nextImage = random.nextInt(pointImages.size)
+    
     val p1 = pointImages(currentImg).map { point => scale(point) }
-    val p2 = pointImages((currentImg + 1) % pointImages.size).map { point => scale(point) }
+    val p2 = pointImages(nextImage).map { point => scale(point) }
     val transitions = createTransitions(p1, p2, time)
 
     models = createModels(transitions)
-    currentImg = (currentImg + 1) % pixImages.size
+    currentImg = nextImage
 
   }
 
@@ -153,7 +154,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
       model.disp(g, center)
     }
 
-    if (models.isEmpty) createNextModels
+    if (models.isEmpty) createNextModels(System.currentTimeMillis() - 100000)
 
     drawBackground(g)
 
@@ -173,7 +174,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
     val time = System.currentTimeMillis()
 
     if (models.isEmpty || models.forall { _.trans.terminated(time) }) {
-      createNextModels
+      createNextModels(System.currentTimeMillis())
     }
   }
 
