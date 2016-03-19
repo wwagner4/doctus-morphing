@@ -171,12 +171,15 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas) extends DoctusTemplate {
   def pointablePressed(pos: DoctusPoint): Unit = () // Nothing to do here
 
   def pointableReleased(pos: DoctusPoint): Unit = {
-    val time = System.currentTimeMillis()
+    nextModel
+  }
 
+  def nextModel: Unit = {
+    val time = System.currentTimeMillis()
     if (models.isEmpty || models.forall { _.trans.terminated(time) }) {
       createNextModels(System.currentTimeMillis())
     }
   }
-
+  
 }
 
