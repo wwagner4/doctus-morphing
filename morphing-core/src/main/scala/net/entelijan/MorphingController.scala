@@ -37,49 +37,13 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
 
   override val frameRate = Some(10)
 
-  val pixImages = List(PixImageFactory.no0160, PixImageFactory.no0260, PixImageFactory.no0360,
-    PixImageFactory.no0460, PixImageFactory.no0560, PixImageFactory.no0660, PixImageFactory.no0760, PixImageFactory.no0860)
+  val pointImages = PointImages.allImages
 
-  val pointImages = Stream(pixImages:_*).map { pix => createPointImg(pix) }
-
-  var currentImg = random.nextInt(pixImages.size)
+  var currentImg = random.nextInt(pointImages.size)
   var models = List.empty[Model]
 
   // Between 0.0 and 1.0
   def ran(): Double = random.nextDouble()
-
-  def createPointImg(pi: PixImage): List[DoctusPoint] = {
-
-    @tailrec
-    def createPoints(cnt: Int, points: List[DoctusPoint], img: PixImage): List[DoctusPoint] = {
-
-      def isPoint(x: Double, y: Double, img: PixImage): Boolean = {
-        val i: Int = math.floor(x * img.width).toInt
-        val j: Int = math.floor(y * img.height).toInt
-        val index = i * img.height + j
-        val bright = img.pixels(index)
-        val ranBright = ran()
-        ranBright > bright
-      }
-
-      if (cnt == 0) points
-      else {
-        val x = ran();
-        val y = ran();
-        if (isPoint(x, y, img)) {
-          val r = img.width.toDouble / img.height
-          val p =
-            if (r < 1.0) DoctusPoint((1 - r) / 2 + x * r, y)
-            else DoctusPoint(x, (r - 1) / 2 + y / r)
-          createPoints(cnt - 1, p :: points, img)
-        } else {
-          createPoints(cnt, points, img)
-        }
-      }
-    }
-
-    createPoints(5000, List.empty[DoctusPoint], pi)
-  }
 
   def createNextModels(time: Long): Unit = {
     val w = canvas.width
@@ -118,7 +82,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
       }
     }
 
-    val nextImage = MorphingUtil.nextIndex(currentImg, pixImages.size, random)
+    val nextImage = MorphingUtil.nextIndex(currentImg, pointImages.size, random)
     
     val p1 = pointImages(currentImg).map { point => scale(point) }
     val p2 = pointImages(nextImage).map { point => scale(point) }
