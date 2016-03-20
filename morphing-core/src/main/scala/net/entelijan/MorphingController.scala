@@ -24,7 +24,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
   sched.start(nextModel, 20000)
 
   def dispLinePrepare(angle: Int): DoctusVector = {
-    val len = 10.0
+    val len = 20.0
     val lenh = len / 2.0
     DoctusVector(0, lenh).rot(angle * math.Pi / 180)
   }
@@ -35,7 +35,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
 
   val disps = Stream.continually(random.nextInt(360)).map { angle => dispLinePrepare(angle) }
 
-  override val frameRate = Some(20)
+  override val frameRate = Some(10)
 
   val pixImages = List(PixImageFactory.no0160, PixImageFactory.no0260, PixImageFactory.no0360,
     PixImageFactory.no0460, PixImageFactory.no0560, PixImageFactory.no0660, PixImageFactory.no0760, PixImageFactory.no0860)
@@ -78,7 +78,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
       }
     }
 
-    createPoints(10000, List.empty[DoctusPoint], pi)
+    createPoints(5000, List.empty[DoctusPoint], pi)
   }
 
   def createNextModels(time: Long): Unit = {
