@@ -40,9 +40,9 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
   val pixImages = List(PixImageFactory.no0160, PixImageFactory.no0260, PixImageFactory.no0360,
     PixImageFactory.no0460, PixImageFactory.no0560, PixImageFactory.no0660, PixImageFactory.no0760, PixImageFactory.no0860)
 
-  val pointImages = pixImages.map { pix => createPointImg(pix) }
+  val pointImages = Stream(pixImages:_*).map { pix => createPointImg(pix) }
 
-  var currentImg = random.nextInt(pointImages.size)
+  var currentImg = random.nextInt(pixImages.size)
   var models = List.empty[Model]
 
   // Between 0.0 and 1.0
@@ -118,7 +118,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
       }
     }
 
-    val nextImage = MorphingUtil.nextIndex(currentImg, pointImages.size, random)
+    val nextImage = MorphingUtil.nextIndex(currentImg, pixImages.size, random)
     
     val p1 = pointImages(currentImg).map { point => scale(point) }
     val p2 = pointImages(nextImage).map { point => scale(point) }
