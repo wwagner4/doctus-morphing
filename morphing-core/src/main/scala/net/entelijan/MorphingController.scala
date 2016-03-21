@@ -44,9 +44,6 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
 
       // Define weather transitions lead to multiples of the
       // current display or not. 
-      // 0 -> Points stay in the current display
-      // n -> Points are morphed to a multiples of the current display 
-      // You do not understand what that means -> try out changing the value of n
       def randomOffset: DoctusVector = {
         val n = 0
         if (n == 0) DoctusVector(0, 0)
@@ -127,8 +124,6 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
 
     drawBackground(g)
 
-    //g.fill(DoctusColorBlack, 10)
-    //g.noStroke()
     g.stroke(DoctusColorBlack, 255)
     g.strokeWeight(1)
 
