@@ -21,7 +21,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
 
   val random = new java.util.Random
 
-  sched.start(nextModel, 20000)
+  sched.start(nextModel, 12000)
 
   val drawing: Drawing[Int, DoctusVector] = DrawingRotatingLine
 
@@ -120,7 +120,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
       model.draw(g, center)
     }
 
-    if (models.isEmpty) createNextModels(Int.MinValue, w, h)
+    if (models.isEmpty) createNextModels(System.currentTimeMillis() + 1000, w, h)
 
     drawBackground(g)
 
