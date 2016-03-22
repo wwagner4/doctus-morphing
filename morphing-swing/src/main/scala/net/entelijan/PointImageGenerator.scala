@@ -8,7 +8,7 @@ import doctus.core.util.DoctusPoint
 import java.util.Random
 import scala.annotation.tailrec
 
-object Images extends App {
+object PointImageGenerator extends App {
   
   case class PixImage(width: Int, height: Int, pixels: Seq[Double])
 
