@@ -10,6 +10,8 @@ import scala.annotation.tailrec
 
 object Images extends App {
   
+  case class PixImage(width: Int, height: Int, pixels: Seq[Double])
+
   case class PointImage(name: String, points: List[DoctusPoint])
 
   val pointCnt = 5000
