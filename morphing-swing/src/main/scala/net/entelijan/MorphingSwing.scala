@@ -21,7 +21,7 @@ object MorphingSwing extends App {
 
   top.setContentPane(cp)
   top.setTitle("Morphing")
-  top.setSize(new Dimension(900, 700))
+  top.setSize(new Dimension(600, 800))
   top.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
   top.setVisible(true)
 
