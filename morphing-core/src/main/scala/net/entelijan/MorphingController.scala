@@ -27,7 +27,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
 
   val rotatingLineVectors = Stream.continually(random.nextInt(360)).map { angle => drawing.prepareDrawing(angle) }
 
-  override val frameRate = Some(10)
+  override val frameRate = Some(20)
 
   val pointImages = PointImages.allImages
 
@@ -125,7 +125,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
     drawBackground(g)
 
     g.stroke(DoctusColorBlack, 255)
-    g.strokeWeight(0.2)
+    g.strokeWeight(0.5)
 
     models.foreach { model => drawModel(model, System.currentTimeMillis()) }
   }
