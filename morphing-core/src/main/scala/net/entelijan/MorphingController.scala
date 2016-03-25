@@ -21,18 +21,18 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
 
   val random = new java.util.Random
 
-  sched.start(nextModel, 15000)
+  val pointImages = PointImages.allImages
+
+  var currentImg = random.nextInt(pointImages.size)
+  var models = List.empty[Model]
+
+  sched.start(nextModel, 15000, 5000)
 
   val drawing: Drawing[Int, DoctusVector] = DrawingRotatingLine
 
   val rotatingLineVectors = Stream.continually(random.nextInt(360)).map { angle => drawing.prepareDrawing(angle) }
 
   override val frameRate = Some(20)
-
-  val pointImages = PointImages.allImages
-
-  var currentImg = random.nextInt(pointImages.size)
-  var models = List.empty[Model]
 
   def ran(): Double = random.nextDouble()
 
@@ -57,7 +57,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
       img1.zip(img2) map {
         case (a1, a2) =>
           val roff = randomOffset
-          val duration = 10000
+          val duration = 2000 + random.nextInt(8000)
           Trans(startTime, a1, a2 + roff, duration)
       }
     }
@@ -120,7 +120,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
       model.draw(g, center)
     }
 
-    if (models.isEmpty) createNextModels(System.currentTimeMillis() + 1000, w, h)
+    if (models.isEmpty) createNextModels(0, w, h)
 
     drawBackground(g)
 
