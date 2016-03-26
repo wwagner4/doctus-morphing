@@ -42,23 +42,10 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
     // create a transition for every point of the current- and the next image
     def createTransitions(img1: List[DoctusPoint], img2: List[DoctusPoint], startTime: Long): List[Trans] = {
 
-      // Define weather transitions lead to multiples of the
-      // current display or not. 
-      def randomOffset: DoctusVector = {
-        val n = 0
-        if (n == 0) DoctusVector(0, 0)
-        else {
-          val xIntOff = random.nextInt(2 * n + 1) - n
-          val yIntOff = random.nextInt(2 * n + 1) - n
-          DoctusVector(xIntOff, yIntOff)
-        }
-      }
-
       img1.zip(img2) map {
         case (a1, a2) =>
-          val roff = randomOffset
           val duration = 2000 + random.nextInt(8000)
-          Trans(startTime, a1, a2 + roff, duration)
+          Trans(startTime, a1, a2, duration)
       }
     }
 
@@ -125,7 +112,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
     drawBackground(g)
 
     g.stroke(DoctusColorBlack, 255)
-    g.strokeWeight(0.7)
+    g.strokeWeight(h.toDouble / 1500)
 
     models.foreach { model => drawModel(model, System.currentTimeMillis()) }
   }
