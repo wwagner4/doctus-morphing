@@ -10,7 +10,7 @@ import doctus.core.template._
 object MorphingSwing extends App {
 
   val top = new JFrame()
-  val panel = DoctusComponentFactory.component
+  val panel = DoctusComponentFactory.component()
 
   val canvas = DoctusTemplateCanvasSwing(panel)
   val sched = DoctusSchedulerSwing
