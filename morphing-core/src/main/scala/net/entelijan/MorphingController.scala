@@ -112,7 +112,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
     drawBackground(g)
 
     g.stroke(DoctusColorBlack, 255)
-    g.strokeWeight(h.toDouble / 1500)
+    g.strokeWeight(h.toDouble / 1000)
 
     models.foreach { model => drawModel(model, System.currentTimeMillis()) }
   }
@@ -145,7 +145,7 @@ trait Drawing[A, B] {
 object DrawingRotatingLine extends Drawing[Int, DoctusVector] {
 
   def prepareDrawing(angle: Int): DoctusVector = {
-    val len = 10.0
+    val len = 20.0
     val lenh = len / 2.0
     DoctusVector(0, lenh).rot(angle * math.Pi / 180)
   }

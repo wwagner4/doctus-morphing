@@ -14,7 +14,7 @@ object PointImageGenerator extends App {
 
   case class PointImage(name: String, points: List[DoctusPoint])
 
-  val pointCnt = 20000
+  val pointCnt = 10000
 
   val random = new Random()
   def ran(): Double = random.nextDouble()
