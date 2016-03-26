@@ -23,9 +23,9 @@ object MorphingUtil {
     }
 
     // Zip all transitions with a drawing function
-    def createModels(transisions: List[Trans], rotatingLineVectors: Stream[DoctusVector], drawing: Drawing[Int, DoctusVector]): List[Model] = {
+    def createModels(transisions: List[Trans], rotatingLineVectors: Stream[DoctusVector], drawing: Drawing[Int, DoctusVector]): List[MorphImage] = {
       transisions.zip(rotatingLineVectors).map {
-        case (trans, rotatingLineVector) => Model(trans, drawing.draw(rotatingLineVector))
+        case (trans, rotatingLineVector) => MorphImage(trans, drawing.draw(rotatingLineVector))
       }
     }
 
