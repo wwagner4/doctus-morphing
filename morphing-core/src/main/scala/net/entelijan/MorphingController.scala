@@ -17,14 +17,15 @@ case class Trans(startTime: Long, from: DoctusPoint, to: DoctusPoint, duration: 
 
 case class Model(trans: Trans, draw: (DoctusGraphics, DoctusPoint) => Unit)
 
+case class MorphModel(
+    currentImg: Int,
+    models: List[Model])
+
 case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) extends DoctusTemplate {
 
   val random = new java.util.Random
 
   val pointImages = PointImages.allImages
-
-  var currentImg = random.nextInt(pointImages.size)
-  var models = List.empty[Model]
 
   sched.start(nextModel, 15000, 5000)
 
@@ -34,46 +35,40 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
 
   override val frameRate = Some(20)
 
+  var currentMorphModel = createInitialModels(canvas.width, canvas.height)
+
   def ran(): Double = random.nextDouble()
 
   // Create a transition and a drawing function for every point of the current- and the next image
-  def createNextModels(time: Long, w: Int, h: Int): Unit = {
+  def createNextModels(morphModel:MorphModel, time: Long, w: Int, h: Int): MorphModel = {
+    
+    import MorphingUtil._
 
-    // create a transition for every point of the current- and the next image
-    def createTransitions(img1: List[DoctusPoint], img2: List[DoctusPoint], startTime: Long): List[Trans] = {
+    val nextImage = nextIndex(morphModel.currentImg, pointImages.size, random)
 
-      img1.zip(img2) map {
-        case (a1, a2) =>
-          val duration = 2000 + random.nextInt(8000)
-          Trans(startTime, a1, a2, duration)
-      }
-    }
+    val p1 = pointImages(morphModel.currentImg).map { point => scale(point, w, h) }
+    val p2 = pointImages(nextImage).map { point => scale(point, w, h) }
+    val transitions = createTransitions(p1, p2, time, random)
 
-    // Zip all transitions with a drawing function
-    def createModels(transisions: List[Trans]): List[Model] = {
-      transisions.zip(rotatingLineVectors).map {
-        case (trans, rotatingLineVector) => Model(trans, drawing.draw(rotatingLineVector))
-      }
-    }
+    val models = createModels(transitions, rotatingLineVectors, drawing)
+    
+    MorphModel(nextImage, models)
 
-    // scale every point according to the current width and height of the display
-    def scale(p: DoctusPoint): DoctusPoint = {
-      val r = w.toDouble / h
-      if (r < 1) DoctusPoint(p.x, (1 - r) / 2 + p.y * r)
-      else {
-        val r1 = 1 / r
-        DoctusPoint((1 - r1) / 2 + p.x * r1, p.y)
-      }
-    }
+  }
 
-    val nextImage = MorphingUtil.nextIndex(currentImg, pointImages.size, random)
+  // Create a transition and a drawing function for every point of the current- and the next image
+  def createInitialModels(w: Int, h: Int): MorphModel = {
+    
+    import MorphingUtil._
 
-    val p1 = pointImages(currentImg).map { point => scale(point) }
-    val p2 = pointImages(nextImage).map { point => scale(point) }
-    val transitions = createTransitions(p1, p2, time)
+    val nextImage = random.nextInt(pointImages.size)
 
-    models = createModels(transitions)
-    currentImg = nextImage
+    val p2 = pointImages(nextImage).map { point => scale(point, w, h) }
+    val transitions = createTransitions(p2, p2, 0, random)
+
+    val models = createModels(transitions, rotatingLineVectors, drawing)
+    
+    MorphModel(nextImage, models)
 
   }
 
@@ -107,14 +102,12 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
       model.draw(g, center)
     }
 
-    if (models.isEmpty) createNextModels(0, w, h)
-
     drawBackground(g)
 
     g.stroke(DoctusColorBlack, 255)
     g.strokeWeight(h.toDouble / 1500)
 
-    models.foreach { model => drawModel(model, System.currentTimeMillis()) }
+    currentMorphModel.models.foreach { model => drawModel(model, System.currentTimeMillis()) }
   }
 
   def pointableDragged(pos: DoctusPoint): Unit = () // Nothing to do here
@@ -127,8 +120,8 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
 
   def nextModel(): Unit = {
     val time = System.currentTimeMillis()
-    if (models.isEmpty || models.forall { _.trans.terminated(time) }) {
-      createNextModels(System.currentTimeMillis(), canvas.width, canvas.height)
+    if (currentMorphModel.models.forall { _.trans.terminated(time) }) {
+      currentMorphModel = createNextModels(currentMorphModel, System.currentTimeMillis(), canvas.width, canvas.height)
     }
   }
 
