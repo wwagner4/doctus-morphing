@@ -15,7 +15,6 @@ object DrawingRotatingLine extends Drawing {
   val lineVectors: Stream[DoctusVector] = Stream.continually(random.nextInt(360)).map { angle => calcVec(angle) }
 
   def draw(g: DoctusGraphics, points: Seq[DoctusPoint], screen: Screen): Unit = {
-    println(points.size)
     
     val cntFactor = 18000 / points.size
     
