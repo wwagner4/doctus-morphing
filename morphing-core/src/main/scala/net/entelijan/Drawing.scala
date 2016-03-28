@@ -16,7 +16,7 @@ object DrawingRotatingLine extends Drawing {
 
   def draw(g: DoctusGraphics, points: Seq[DoctusPoint], screen: Screen): Unit = {
     
-    val cntFactor = 20000 / points.size
+    val cntFactor = 18000 / points.size
     
     val len = cntFactor * math.min(screen.height, screen.width) / 100
     val weight = cntFactor * math.min(screen.height, screen.width) / 1000
