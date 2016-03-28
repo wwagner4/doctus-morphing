@@ -37,7 +37,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
 
   override val frameRate = Some(20)
 
-  var currentMorphModel = createInitialModel(canvas.width, canvas.height)
+  var currentMorphModel = createInitialModel(Screen(canvas.width, canvas.height))
 
   var state: State = State_Waiting(System.currentTimeMillis())
 
@@ -46,14 +46,14 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
   def ran(): Double = random.nextDouble()
 
   // Create a transition and a drawing function for every point of the current- and the next image
-  def createNextModel(morphModel: MorphModel, time: Long, w: Int, h: Int): MorphModel = {
+  def createNextModel(morphModel: MorphModel, time: Long, screen: Screen): MorphModel = {
 
     import MorphingUtil._
 
     val nextImageIndex = nextIndex(morphModel.imageIndex, pointImages.size, random)
 
-    val p1 = pointImages(morphModel.imageIndex).map { point => scale(point, w, h) }
-    val p2 = pointImages(nextImageIndex).map { point => scale(point, w, h) }
+    val p1 = pointImages(morphModel.imageIndex).map { point => scale(point, screen) }
+    val p2 = pointImages(nextImageIndex).map { point => scale(point, screen) }
     val transitions = createTransitions(p1, p2, time, random)
 
     MorphModel(nextImageIndex, transitions)
@@ -61,17 +61,37 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
   }
 
   // Create a transition and a drawing function for every point of the initial image
-  def createInitialModel(w: Int, h: Int): MorphModel = {
+  def createInitialModel(screen: Screen): MorphModel = {
 
     import MorphingUtil._
 
     val imageIndex = random.nextInt(pointImages.size)
 
-    val img = pointImages(imageIndex).map { point => scale(point, w, h) }
+    val img = pointImages(imageIndex).map { point => scale(point, screen) }
     val transitions = createTransitions(img, img, 0, random)
 
     MorphModel(imageIndex, transitions)
 
+  }
+
+  // scale every point according to the current width and height of the display
+  def scale(p: DoctusPoint, screen: Screen): DoctusPoint = {
+    val r = screen.width / screen.height
+    if (r < 1) DoctusPoint(p.x, (1 - r) / 2 + p.y * r)
+    else {
+      val r1 = 1 / r
+      DoctusPoint((1 - r1) / 2 + p.x * r1, p.y)
+    }
+  }
+
+  // create a transition for every point of the current- and the next image
+  def createTransitions(img1: List[DoctusPoint], img2: List[DoctusPoint], startTime: Long, random: Random): List[Trans] = {
+
+    img1.zip(img2) map {
+      case (a1, a2) =>
+        val duration = 2000
+        Trans(startTime, a1, a2, duration)
+    }
   }
 
   def draw(g: DoctusGraphics): Unit = {
@@ -110,7 +130,8 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
     val time = System.currentTimeMillis()
     state match {
       case State_Waiting(_) =>
-        currentMorphModel = createNextModel(currentMorphModel, time, canvas.width, canvas.height)
+        val screen = Screen(canvas.width, canvas.height)
+        currentMorphModel = createNextModel(currentMorphModel, time, screen)
         state = State_Morphing
       case State_Morphing => // Nothing to do
     }
@@ -122,11 +143,12 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
       case State_Morphing =>
         if (currentMorphModel.transitions.forall { _.terminated(time) }) {
           state = State_Waiting(time)
-        } 
+        }
 
       case State_Waiting(since) =>
         if (time - since > 4000) {
-          currentMorphModel = createNextModel(currentMorphModel, time, canvas.width, canvas.height)
+          val screen = Screen(canvas.width, canvas.height)
+          currentMorphModel = createNextModel(currentMorphModel, time, screen)
           state = State_Morphing
         }
 
