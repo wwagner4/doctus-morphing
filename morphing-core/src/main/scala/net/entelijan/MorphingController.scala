@@ -118,13 +118,8 @@ object DrawingRotatingLine extends Drawing {
 
   val random = new Random()
 
-  val rotatingLineVectors: Stream[DoctusVector] = Stream.continually(random.nextInt(360)).map { angle => calcVec(angle) }
+  val lineVectors: Stream[DoctusVector] = Stream.continually(random.nextInt(360)).map { angle => calcVec(angle) }
 
-  def drawBackground(g: DoctusGraphics, screen: Screen): Unit = {
-    g.fill(DoctusColorWhite, 255)
-    g.rect(DoctusPoint(0, 0), screen.width, screen.height)
-  }
-  
   def calcStrokeWeight(screen: Screen): Double = screen.height.toDouble / 1500
 
   def draw(g: DoctusGraphics, points: Seq[DoctusPoint], screen: Screen): Unit = {
@@ -133,10 +128,9 @@ object DrawingRotatingLine extends Drawing {
     g.stroke(DoctusColorBlack, 255)
     g.strokeWeight(calcStrokeWeight(screen))
 
-    points.zip(rotatingLineVectors).map {
+    points.zip(lineVectors).map {
       case (p, v) => g.line(p + v, p - v)
     }
-    
   }
 
   def calcVec(angle: Int): DoctusVector = {
@@ -145,6 +139,11 @@ object DrawingRotatingLine extends Drawing {
     DoctusVector(0, lenh).rot(angle * math.Pi / 180)
   }
 
+  def drawBackground(g: DoctusGraphics, screen: Screen): Unit = {
+    g.fill(DoctusColorWhite, 255)
+    g.rect(DoctusPoint(0, 0), screen.width, screen.height)
+  }
+  
 
 }
 
