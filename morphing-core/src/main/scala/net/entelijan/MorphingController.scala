@@ -16,6 +16,11 @@ case class Trans(startTime: Long, from: DoctusPoint, to: DoctusPoint, duration: 
 
 }
 
+sealed trait State
+
+case object State_Morphing extends State
+case class State_Waiting(since: Long) extends State
+
 case class Screen(width: Double, height: Double)
 
 case class MorphModel(
@@ -28,13 +33,15 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
 
   val pointImages = PointImages.allImages
 
-  sched.start(nextModel, 15000, 5000)
-
   val drawing: Drawing = DrawingRotatingLine
 
   override val frameRate = Some(20)
 
   var currentMorphModel = createInitialModel(canvas.width, canvas.height)
+
+  var state: State = State_Waiting(System.currentTimeMillis())
+
+  sched.start(nextModelAuto, 213)
 
   def ran(): Double = random.nextDouble()
 
@@ -68,7 +75,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
   }
 
   def draw(g: DoctusGraphics): Unit = {
-    
+
     val screen = Screen(canvas.width, canvas.height)
 
     def calcPoints(trans: Trans, time: Long): DoctusPoint = {
@@ -101,8 +108,28 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
 
   def nextModel(): Unit = {
     val time = System.currentTimeMillis()
-    if (currentMorphModel.transitions.forall { _.terminated(time) }) {
-      currentMorphModel = createNextModel(currentMorphModel, time, canvas.width, canvas.height)
+    state match {
+      case State_Waiting(_) =>
+        currentMorphModel = createNextModel(currentMorphModel, time, canvas.width, canvas.height)
+        state = State_Morphing
+      case State_Morphing => // Nothing to do
+    }
+  }
+
+  def nextModelAuto(): Unit = {
+    val time = System.currentTimeMillis()
+    state match {
+      case State_Morphing =>
+        if (currentMorphModel.transitions.forall { _.terminated(time) }) {
+          state = State_Waiting(time)
+        } 
+
+      case State_Waiting(since) =>
+        if (time - since > 4000) {
+          currentMorphModel = createNextModel(currentMorphModel, time, canvas.width, canvas.height)
+          state = State_Morphing
+        }
+
     }
   }
 
