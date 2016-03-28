@@ -121,7 +121,10 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
   }
 
   def keyPressed(code: DoctusKeyCode): Unit = {
-    println("pressed " + code)
+    code match {
+      case DKC_Space => nextModel()
+      case _ => // nothing to do
+    }
   }
 
   def pointableDragged(pos: DoctusPoint): Unit = () // Nothing to do here
