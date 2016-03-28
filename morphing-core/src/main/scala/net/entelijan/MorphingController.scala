@@ -20,7 +20,7 @@ case class Screen(width: Double, height: Double)
 
 case class MorphModel(
   imageIndex: Int,
-  images: List[Trans])
+  transitions: List[Trans])
 
 case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) extends DoctusTemplate {
 
@@ -68,11 +68,10 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
   }
 
   def draw(g: DoctusGraphics): Unit = {
-    // TODO Use screen
-    val w = canvas.width
-    val h = canvas.height
+    
+    val screen = Screen(canvas.width, canvas.height)
 
-    def drawModel(trans: Trans, time: Long): DoctusPoint = {
+    def calcPoints(trans: Trans, time: Long): DoctusPoint = {
 
       // Adjust the point to the display if its x or y value is greater then w or h
       def adjust(v: Double, max: Double): Double = {
@@ -87,25 +86,22 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
       val t = (time - trans.startTime).toDouble
       val x = InOutQuad.calc(t, trans.from.x, trans.to.x, trans.duration)
       val y = InOutQuad.calc(t, trans.from.y, trans.to.y, trans.duration)
-      val dp = DoctusPoint(adjust(x, w), adjust(y, h))
-      DoctusPoint(dp.x, dp.y)
+      DoctusPoint(adjust(x, screen.width), adjust(y, screen.height))
     }
 
-    val points = currentMorphModel.images.map { model => drawModel(model, System.currentTimeMillis()) }
-    drawing.draw(g, points, Screen(w, h))
+    val points = currentMorphModel.transitions.map { calcPoints(_, System.currentTimeMillis()) }
+    drawing.draw(g, points, screen)
   }
 
   def pointableDragged(pos: DoctusPoint): Unit = () // Nothing to do here
 
   def pointablePressed(pos: DoctusPoint): Unit = () // Nothing to do here
 
-  def pointableReleased(pos: DoctusPoint): Unit = {
-    nextModel()
-  }
+  def pointableReleased(pos: DoctusPoint): Unit = nextModel()
 
   def nextModel(): Unit = {
     val time = System.currentTimeMillis()
-    if (currentMorphModel.images.forall { _.terminated(time) }) {
+    if (currentMorphModel.transitions.forall { _.terminated(time) }) {
       currentMorphModel = createNextModel(currentMorphModel, time, canvas.width, canvas.height)
     }
   }
