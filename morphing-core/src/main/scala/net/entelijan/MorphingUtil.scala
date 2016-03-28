@@ -22,13 +22,6 @@ object MorphingUtil {
       }
     }
 
-    // Zip all transitions with a drawing function
-    def createModels(transisions: List[Trans], rotatingLineVectors: Stream[DoctusVector], drawing: Drawing[Int, DoctusVector]): List[MorphImage] = {
-      transisions.zip(rotatingLineVectors).map {
-        case (trans, rotatingLineVector) => MorphImage(trans, drawing.draw(rotatingLineVector))
-      }
-    }
-
     // scale every point according to the current width and height of the display
     def scale(p: DoctusPoint, w: Int, h: Int): DoctusPoint = {
       val r = w.toDouble / h
