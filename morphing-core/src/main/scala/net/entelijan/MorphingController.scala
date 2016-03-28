@@ -120,6 +120,10 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
     drawing.draw(g, points, screen)
   }
 
+  def keyPressed(code: DoctusKeyCode): Unit = {
+    println("pressed " + code)
+  }
+
   def pointableDragged(pos: DoctusPoint): Unit = () // Nothing to do here
 
   def pointablePressed(pos: DoctusPoint): Unit = () // Nothing to do here
