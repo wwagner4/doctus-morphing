@@ -7,6 +7,7 @@ import doctus.core.color._
 import scala.annotation.tailrec
 import easing.OutQuad
 import easing.InOutQuad
+import java.util.Random
 
 // Defines the transition of a point from one image to the next
 case class Trans(startTime: Long, from: DoctusPoint, to: DoctusPoint, duration: Long) {
@@ -15,7 +16,11 @@ case class Trans(startTime: Long, from: DoctusPoint, to: DoctusPoint, duration: 
 
 }
 
-case class Model(trans: Trans, draw: (DoctusGraphics, DoctusPoint) => Unit)
+case class Screen(width: Double, height: Double)
+
+case class MorphModel(
+  imageIndex: Int,
+  transitions: List[Trans])
 
 case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) extends DoctusTemplate {
 
@@ -23,70 +28,50 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
 
   val pointImages = PointImages.allImages
 
-  var currentImg = random.nextInt(pointImages.size)
-  var models = List.empty[Model]
-
   sched.start(nextModel, 15000, 5000)
 
-  val drawing: Drawing[Int, DoctusVector] = DrawingRotatingLine
-
-  val rotatingLineVectors = Stream.continually(random.nextInt(360)).map { angle => drawing.prepareDrawing(angle) }
+  val drawing: Drawing = DrawingRotatingLine
 
   override val frameRate = Some(20)
+
+  var currentMorphModel = createInitialModel(canvas.width, canvas.height)
 
   def ran(): Double = random.nextDouble()
 
   // Create a transition and a drawing function for every point of the current- and the next image
-  def createNextModels(time: Long, w: Int, h: Int): Unit = {
+  def createNextModel(morphModel: MorphModel, time: Long, w: Int, h: Int): MorphModel = {
 
-    // create a transition for every point of the current- and the next image
-    def createTransitions(img1: List[DoctusPoint], img2: List[DoctusPoint], startTime: Long): List[Trans] = {
+    import MorphingUtil._
 
-      img1.zip(img2) map {
-        case (a1, a2) =>
-          val duration = 2000 + random.nextInt(8000)
-          Trans(startTime, a1, a2, duration)
-      }
-    }
+    val nextImageIndex = nextIndex(morphModel.imageIndex, pointImages.size, random)
 
-    // Zip all transitions with a drawing function
-    def createModels(transisions: List[Trans]): List[Model] = {
-      transisions.zip(rotatingLineVectors).map {
-        case (trans, rotatingLineVector) => Model(trans, drawing.draw(rotatingLineVector))
-      }
-    }
+    val p1 = pointImages(morphModel.imageIndex).map { point => scale(point, w, h) }
+    val p2 = pointImages(nextImageIndex).map { point => scale(point, w, h) }
+    val transitions = createTransitions(p1, p2, time, random)
 
-    // scale every point according to the current width and height of the display
-    def scale(p: DoctusPoint): DoctusPoint = {
-      val r = w.toDouble / h
-      if (r < 1) DoctusPoint(p.x, (1 - r) / 2 + p.y * r)
-      else {
-        val r1 = 1 / r
-        DoctusPoint((1 - r1) / 2 + p.x * r1, p.y)
-      }
-    }
+    MorphModel(nextImageIndex, transitions)
 
-    val nextImage = MorphingUtil.nextIndex(currentImg, pointImages.size, random)
+  }
 
-    val p1 = pointImages(currentImg).map { point => scale(point) }
-    val p2 = pointImages(nextImage).map { point => scale(point) }
-    val transitions = createTransitions(p1, p2, time)
+  // Create a transition and a drawing function for every point of the initial image
+  def createInitialModel(w: Int, h: Int): MorphModel = {
 
-    models = createModels(transitions)
-    currentImg = nextImage
+    import MorphingUtil._
+
+    val imageIndex = random.nextInt(pointImages.size)
+
+    val img = pointImages(imageIndex).map { point => scale(point, w, h) }
+    val transitions = createTransitions(img, img, 0, random)
+
+    MorphModel(imageIndex, transitions)
 
   }
 
   def draw(g: DoctusGraphics): Unit = {
-    val w = canvas.width
-    val h = canvas.height
+    
+    val screen = Screen(canvas.width, canvas.height)
 
-    def drawBackground(g: DoctusGraphics): Unit = {
-      g.fill(DoctusColorWhite, 255)
-      g.rect(DoctusPoint(0, 0), w, h)
-    }
-
-    def drawModel(model: Model, time: Long): Unit = {
+    def calcPoints(trans: Trans, time: Long): DoctusPoint = {
 
       // Adjust the point to the display if its x or y value is greater then w or h
       def adjust(v: Double, max: Double): Double = {
@@ -97,62 +82,34 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
         }
       }
 
-      val trans = model.trans
       // Calculate the current position of a point using easing functions
       val t = (time - trans.startTime).toDouble
       val x = InOutQuad.calc(t, trans.from.x, trans.to.x, trans.duration)
       val y = InOutQuad.calc(t, trans.from.y, trans.to.y, trans.duration)
-      val dp = DoctusPoint(adjust(x, w), adjust(y, h))
-      val center = DoctusPoint(dp.x, dp.y)
-      model.draw(g, center)
+      DoctusPoint(adjust(x, screen.width), adjust(y, screen.height))
     }
 
-    if (models.isEmpty) createNextModels(0, w, h)
-
-    drawBackground(g)
-
-    g.stroke(DoctusColorBlack, 255)
-    g.strokeWeight(h.toDouble / 1000)
-
-    models.foreach { model => drawModel(model, System.currentTimeMillis()) }
+    val points = currentMorphModel.transitions.map { calcPoints(_, System.currentTimeMillis()) }
+    drawing.draw(g, points, screen)
   }
 
   def pointableDragged(pos: DoctusPoint): Unit = () // Nothing to do here
 
   def pointablePressed(pos: DoctusPoint): Unit = () // Nothing to do here
 
-  def pointableReleased(pos: DoctusPoint): Unit = {
-    nextModel
-  }
+  def pointableReleased(pos: DoctusPoint): Unit = nextModel()
 
   def nextModel(): Unit = {
     val time = System.currentTimeMillis()
-    if (models.isEmpty || models.forall { _.trans.terminated(time) }) {
-      createNextModels(System.currentTimeMillis(), canvas.width, canvas.height)
+    if (currentMorphModel.transitions.forall { _.terminated(time) }) {
+      currentMorphModel = createNextModel(currentMorphModel, time, canvas.width, canvas.height)
     }
   }
 
 }
 
-trait Drawing[A, B] {
+trait Drawing {
 
-  def prepareDrawing(angle: A): B
-
-  def draw(angleVector: B)(g: DoctusGraphics, point: DoctusPoint): Unit
+  def draw(g: DoctusGraphics, point: Seq[DoctusPoint], screen: Screen): Unit
 
 }
-
-object DrawingRotatingLine extends Drawing[Int, DoctusVector] {
-
-  def prepareDrawing(angle: Int): DoctusVector = {
-    val len = 20.0
-    val lenh = len / 2.0
-    DoctusVector(0, lenh).rot(angle * math.Pi / 180)
-  }
-
-  def draw(angleVector: DoctusVector)(g: DoctusGraphics, point: DoctusPoint): Unit = {
-    g.line(point + angleVector, point - angleVector)
-  }
-
-}
-
