@@ -18,7 +18,7 @@ object DrawingRotatingLine extends Drawing {
     
     val cntFactor = 18000 / points.size
     
-    val len = cntFactor * math.min(screen.height, screen.width) / 100
+    val len = cntFactor * math.min(screen.height, screen.width) / 200
     val weight = cntFactor * math.min(screen.height, screen.width) / 1000
 
     drawBackground(g, screen)
