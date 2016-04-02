@@ -89,7 +89,7 @@ case class MorphingDoctusTemplate(canvas: DoctusCanvas, sched: DoctusScheduler) 
 
     img1.zip(img2) map {
       case (a1, a2) =>
-        val duration = 2000
+        val duration = 1000 + random.nextInt(9000)
         Trans(startTime, a1, a2, duration)
     }
   }
