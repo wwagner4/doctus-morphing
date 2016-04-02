@@ -14,7 +14,7 @@ object MorphingBuild extends Build {
     val version = "0.1.0-SNAPSHOT"
 
     val scalaVersion = "2.11.8"
-    val doctusVersion = "1.0.5-SNAPSHOT"
+    val doctusVersion = "1.0.5"
     val scalaJsDomJqueryVersion = "0.9.0"
 
   }
@@ -27,7 +27,7 @@ object MorphingBuild extends Build {
           version := D.version,
           scalaVersion := D.scalaVersion,
           organization := "net.entelijan",
-          // TODO replace with github resolvers += "entelijan" at "http://entelijan.net/artifactory/repo",
+          resolvers += Resolver.bintrayRepo("wwagner4", "maven"),
           EclipseKeys.withSource := true)
 
     lazy val coreSettings =
